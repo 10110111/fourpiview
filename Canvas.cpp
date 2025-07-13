@@ -5,6 +5,7 @@
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QImageReader>
+#include <QRotationSensor>
 #include <glm/gtx/transform.hpp>
 
 namespace
@@ -52,9 +53,21 @@ inline QMatrix3x3 toQMatrix(glm::mat3 const& m) { return QMatrix3x3(&transpose(m
 
 Canvas::Canvas(QWidget* parent)
     : QOpenGLWidget(parent)
+    , sensor_(new QRotationSensor(this))
 {
     setFormat(makeGLSurfaceFormat());
     setAcceptDrops(true);
+    frameTimer_.start(1000 / 60);
+    connect(&frameTimer_, &QTimer::timeout, this, qOverload<>(&Canvas::update));
+    if(sensor_->connectToBackend())
+    {
+        qDebug() << "Sensor connected to backend, starting";
+        sensor_->start();
+    }
+    else
+    {
+        qDebug() << "Failed to connect sensor to backend";
+    }
 }
 
 void Canvas::setupBuffers()
@@ -316,6 +329,22 @@ bool Canvas::openFile(const QString& path)
 
 void Canvas::paintGL()
 {
+    glm::dmat3 sensorRotation = glm::dmat3(1,0,0,0,1,0,0,0,1);
+    if(const auto rot = sensor_->reading(); rot && sensor_->hasZ())
+    {
+        static const auto X = glm::dvec3(1,0,0);
+        static const auto Y = glm::dvec3(0,1,0);
+        static const auto Z = glm::dvec3(0,0,1);
+        sensorRotation =
+            // Compensate for the default 0,0,0 orientation,
+            // which represents the phone lying on a table.
+            glm::rotate(M_PI/2, -Y) *
+            // Apply the sensed rotation
+            glm::rotate(rot->z() * DEGREE, X) *
+            glm::rotate(rot->x() * DEGREE, Y) *
+            glm::rotate(rot->y() * DEGREE, Z);
+    }
+
     getViewportSize();
     glClearColor(0.3,0.3,0.3,1);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -346,7 +375,7 @@ void Canvas::paintGL()
     program_.setUniformValue("tex", 0);
     program_.setUniformValue("horizViewAngle", float(horizViewAngle_));
     program_.setUniformValue("viewportAspectRatio", float(viewportWidth_) / viewportHeight_);
-    program_.setUniformValue("cameraRotation", toQMatrix(cameraRotation()));
+    program_.setUniformValue("cameraRotation", toQMatrix(sensorRotation * cameraRotation()));
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindTexture(GL_TEXTURE_2D, 0);
 

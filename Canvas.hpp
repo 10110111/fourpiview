@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <memory>
+#include <QTimer>
 #include <QImage>
 #include <QOpenGLWidget>
 #include <QOpenGLTexture>
@@ -10,6 +11,7 @@
 #include <glm/glm.hpp>
 
 class ToolsWidget;
+class QRotationSensor;
 class Canvas : public QOpenGLWidget, public QOpenGLExtraFunctions
 {
     Q_OBJECT
@@ -31,6 +33,8 @@ class Canvas : public QOpenGLWidget, public QOpenGLExtraFunctions
     QImage image_;
     int viewportWidth_ = 0, viewportHeight_ = 0;
     int maxTexSize_ = 0;
+    QRotationSensor* sensor_ = nullptr;
+    QTimer frameTimer_;
 
 public:
     Canvas(QWidget* parent=nullptr);

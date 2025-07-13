@@ -11,7 +11,7 @@ add_definitions(-DPROJECT_VERSION=\"${CMAKE_PROJECT_VERSION}\")
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
-find_package(Qt6 6.4 REQUIRED Core OpenGL OpenGLWidgets)
+find_package(Qt6 6.4 REQUIRED Core OpenGL OpenGLWidgets Sensors)
 
 include(CheckIncludeFileCXX)
 check_include_file_cxx("glm/glm.hpp" HAVE_GLM)
@@ -29,6 +29,6 @@ qt_add_executable(fourpiview
                     android/res/values/libs.xml
                     android/res/xml/qtprovider_paths.xml
                  )
-target_link_libraries(fourpiview PRIVATE Qt6::OpenGLWidgets)
+target_link_libraries(fourpiview PRIVATE Qt6::OpenGLWidgets Qt6::Sensors)
 set_target_properties(fourpiview PROPERTIES
     QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
