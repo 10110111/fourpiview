@@ -44,28 +44,36 @@ MainWin::MainWin(const QString& appName, const QString& filePath, QWidget* paren
     setWindowTitle(appName_);
     setCentralWidget(canvas_);
 
+    connect(canvas_, &Canvas::newFileRequested, this, &MainWin::openFile);
+
     const auto menuBar = this->menuBar();
+    const auto aboutAction = new QAction(tr("&About"), this);
+    connect(aboutAction, &QAction::triggered, this, &MainWin::showAboutDialog);
+#ifdef Q_OS_ANDROID
+    const auto fileMenu = menuBar->addMenu(tr("File"));
+    const auto openAction = new QAction(tr("Open File"), this);
+    connect(openAction, &QAction::triggered, this, &MainWin::openFile);
+    fileMenu->addAction(openAction);
+    fileMenu->addAction(aboutAction);
+#else
+    connect(canvas_, &Canvas::newImageLoaded,
+            [this](const QString& fileName)
+            { setWindowTitle(fileName + " - " + appName_); });
+
     const auto fileMenu = menuBar->addMenu(tr("&File"));
     const auto helpMenu = menuBar->addMenu(tr("&Help"));
+    helpMenu->addAction(aboutAction);
 
     const auto openAction = new QAction(tr("&Open"), this);
     openAction->setShortcut(QKeySequence::fromString("Ctrl+O"));
     connect(openAction, &QAction::triggered, this, &MainWin::openFile);
     fileMenu->addAction(openAction);
 
-    connect(canvas_, &Canvas::newImageLoaded,
-            [this](const QString& fileName)
-            { setWindowTitle(fileName + " - " + appName_); });
-    connect(canvas_, &Canvas::newFileRequested, this, &MainWin::openFile);
-
     const auto quitAction = new QAction(tr("&Quit"), this);
     quitAction->setShortcut(QKeySequence::fromString("Ctrl+Q"));
     connect(quitAction, &QAction::triggered, []{qApp->quit();});
     fileMenu->addAction(quitAction);
-
-    const auto aboutAction = new QAction(tr("&About"), this);
-    connect(aboutAction, &QAction::triggered, this, &MainWin::showAboutDialog);
-    helpMenu->addAction(aboutAction);
+#endif
 
     if(!filePath.isEmpty())
         QTimer::singleShot(0, [&]{canvas_->openFile(filePath);});
