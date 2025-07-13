@@ -24,5 +24,11 @@ qt_add_executable(fourpiview
                     main.cpp
                     Canvas.cpp
                     MainWin.cpp
+                    android/AndroidManifest.xml
+                    android/build.gradle
+                    android/res/values/libs.xml
+                    android/res/xml/qtprovider_paths.xml
                  )
 target_link_libraries(fourpiview PRIVATE Qt6::OpenGLWidgets)
+set_target_properties(fourpiview PROPERTIES
+    QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
