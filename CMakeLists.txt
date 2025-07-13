@@ -20,9 +20,9 @@ if(NOT HAVE_GLM)
     message(FATAL_ERROR "GLM was not found")
 endif()
 
-add_executable(fourpiview
-                main.cpp
-                Canvas.cpp
-                MainWin.cpp
-              )
-target_link_libraries(fourpiview Qt6::Core Qt6::OpenGL Qt6::OpenGLWidgets)
+qt_add_executable(fourpiview
+                    main.cpp
+                    Canvas.cpp
+                    MainWin.cpp
+                 )
+target_link_libraries(fourpiview PRIVATE Qt6::OpenGLWidgets)
