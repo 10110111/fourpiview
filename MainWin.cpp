@@ -75,16 +75,7 @@ MainWin::MainWin(const QString& appName, const QString& filePath, QWidget* paren
 
     connect(canvas_, &Canvas::newFileRequested, this, &MainWin::openFile);
 
-    const auto menuBar = this->menuBar();
-    const auto aboutAction = new QAction(tr("&About"), this);
-    connect(aboutAction, &QAction::triggered, this, &MainWin::showAboutDialog);
 #ifdef Q_OS_ANDROID
-    const auto fileMenu = menuBar->addMenu(tr("File"));
-    const auto openAction = new QAction(tr("Open File"), this);
-    connect(openAction, &QAction::triggered, this, &MainWin::openFile);
-    fileMenu->addAction(openAction);
-    fileMenu->addAction(aboutAction);
-
     closeFileButton_ = new QToolButton;
     closeFileButton_->setStyleSheet(uiCSS);
     closeFileButton_->setIcon(QIcon(":cross.svg"));
@@ -116,6 +107,10 @@ MainWin::MainWin(const QString& appName, const QString& filePath, QWidget* paren
                 closeFileButton_->show();
             });
 #else
+    const auto menuBar = this->menuBar();
+    const auto aboutAction = new QAction(tr("&About"), this);
+    connect(aboutAction, &QAction::triggered, this, &MainWin::showAboutDialog);
+
     connect(canvas_, &Canvas::newImageLoaded,
             [this](const QString& fileName)
             { setWindowTitle(fileName + " - " + appName_); });
