@@ -1,20 +1,48 @@
 #include "MainWin.hpp"
+#include <QLabel>
 #include <QTimer>
 #include <QAction>
 #include <QMenuBar>
+#include <QGridLayout>
+#include <QToolButton>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QApplication>
 #include "Canvas.hpp"
 
+namespace
+{
+const char uiCSS[] = R"(
+QToolButton {
+    border: 1px solid rgba(0, 0, 0, 0);
+    border-radius: 10px;
+    background: rgba(0,0,0,0);
+    padding: 4px, 4px, 4px, 4px;
+}
+QToolButton:hover {
+    background: rgba(0,0,0,64);
+}
+QToolButton:pressed {
+    background: rgba(0,0,0,128);
+}
+QLabel {
+    color: white;
+    qproperty-alignment: AlignCenter;
+}
+)";
+}
+
 void MainWin::openFile()
 {
+    hintLabel_->setText("");
     const QString filter = tr("Images") + " (*.jpg *.png *.tiff)";
     QString defaultDir;
     const auto file = QFileDialog::getOpenFileName(this, tr("Open image file"),
                                                    defaultDir, filter);
     if(file.isEmpty()) return;
-    canvas_->openFile(file);
+    hintLabel_->setText(tr("Loading image..."));
+    update();
+    QTimer::singleShot(10, [this, file]{ canvas_->openFile(file); });
 }
 
 void MainWin::showAboutDialog()
@@ -39,6 +67,7 @@ void MainWin::showAboutDialog()
 MainWin::MainWin(const QString& appName, const QString& filePath, QWidget* parent)
     : QMainWindow(parent)
     , appName_(appName)
+    , tapAnywhereText_(tr("Tap anywhere to open an image"))
     , canvas_(new Canvas)
 {
     setWindowTitle(appName_);
@@ -55,6 +84,37 @@ MainWin::MainWin(const QString& appName, const QString& filePath, QWidget* paren
     connect(openAction, &QAction::triggered, this, &MainWin::openFile);
     fileMenu->addAction(openAction);
     fileMenu->addAction(aboutAction);
+
+    closeFileButton_ = new QToolButton;
+    closeFileButton_->setStyleSheet(uiCSS);
+    closeFileButton_->setIcon(QIcon(":cross.svg"));
+    closeFileButton_->setFixedSize(20,20);
+    closeFileButton_->hide();
+    const auto vbox = new QVBoxLayout(canvas_);
+    const auto hbox = new QHBoxLayout;
+    vbox->addLayout(hbox);
+    vbox->addStretch(1);
+    hintLabel_ = new QLabel(tapAnywhereText_);
+    hintLabel_->setStyleSheet(uiCSS);
+    vbox->addWidget(hintLabel_);
+    vbox->addStretch(1);
+    hbox->addWidget(closeFileButton_);
+    hbox->addStretch(1);
+
+    connect(closeFileButton_, &QAbstractButton::clicked, this,
+            [this]
+            {
+                canvas_->closeImage();
+                setWindowTitle(appName_);
+                hintLabel_->setText(tapAnywhereText_);
+                hintLabel_->show();
+                closeFileButton_->hide();
+            });
+    connect(canvas_, &Canvas::newImageLoaded, [this]
+            {
+                hintLabel_->hide();
+                closeFileButton_->show();
+            });
 #else
     connect(canvas_, &Canvas::newImageLoaded,
             [this](const QString& fileName)
@@ -76,6 +136,5 @@ MainWin::MainWin(const QString& appName, const QString& filePath, QWidget* paren
 #endif
 
     if(!filePath.isEmpty())
-        QTimer::singleShot(0, [&]{canvas_->openFile(filePath);});
-
+        QTimer::singleShot(0, [this, filePath]{canvas_->openFile(filePath);});
 }

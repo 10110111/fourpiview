@@ -42,6 +42,7 @@ public:
     void setImage(const QImage& image);
     bool openFile(const QString& path);
     int maxTexSize() const { return maxTexSize_; }
+    void closeImage();
 
 signals:
     void newImageLoaded(const QString& fileName);

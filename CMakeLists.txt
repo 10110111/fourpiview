@@ -20,10 +20,13 @@ if(NOT HAVE_GLM)
     message(FATAL_ERROR "GLM was not found")
 endif()
 
+qt6_add_resources(RES_SOURCES resources.qrc)
+
 qt_add_executable(fourpiview
                     main.cpp
                     Canvas.cpp
                     MainWin.cpp
+                    ${RES_SOURCES}
                     android/AndroidManifest.xml
                     android/build.gradle
                     android/res/values/libs.xml

@@ -326,6 +326,10 @@ bool Canvas::openFile(const QString& path)
     return true;
 }
 
+void Canvas::closeImage()
+{
+    texture_.reset();
+}
 
 void Canvas::paintGL()
 {

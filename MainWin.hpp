@@ -2,7 +2,9 @@
 
 #include <QMainWindow>
 
+class QLabel;
 class Canvas;
+class QToolButton;
 class MainWin : public QMainWindow
 {
 public:
@@ -12,5 +14,8 @@ private:
     void openFile();
 
     const QString appName_;
-    Canvas* canvas_;
+    const QString tapAnywhereText_;
+    Canvas* canvas_ = nullptr;
+    QLabel* hintLabel_ = nullptr;
+    QToolButton* closeFileButton_ = nullptr;
 };
