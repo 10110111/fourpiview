@@ -23,7 +23,7 @@ class Canvas : public QOpenGLWidget, public QOpenGLExtraFunctions
     } dragMode_=DragMode::None;
     double prevMouseX_, prevMouseY_;
     static constexpr double inline DEGREE = M_PI / 180;
-    double horizViewAngle_ = 80 * DEGREE;
+    double horizViewAngle_ = 60 * DEGREE;
     double pitch_ = 0, yaw_ = 0;
 
     GLuint vao_=0;
