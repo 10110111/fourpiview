@@ -15,9 +15,9 @@ namespace
 const char uiCSS[] = R"(
 QToolButton {
     border: 1px solid rgba(0, 0, 0, 0);
-    border-radius: 10px;
+    border-radius: 24px;
     background: rgba(0,0,0,0);
-    padding: 4px, 4px, 4px, 4px;
+    padding: 0px, 0px, 0px, 0px;
 }
 QToolButton:hover {
     background: rgba(0,0,0,64);
@@ -79,7 +79,8 @@ MainWin::MainWin(const QString& appName, const QString& filePath, QWidget* paren
     closeFileButton_ = new QToolButton;
     closeFileButton_->setStyleSheet(uiCSS);
     closeFileButton_->setIcon(QIcon(":cross.svg"));
-    closeFileButton_->setFixedSize(20,20);
+    closeFileButton_->setFixedSize(48,48);
+    closeFileButton_->setIconSize(QSize(16,16));
     closeFileButton_->hide();
     const auto vbox = new QVBoxLayout(canvas_);
     const auto hbox = new QHBoxLayout;
