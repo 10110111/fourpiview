@@ -8,7 +8,7 @@
 #include <QOpenGLTexture>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLExtraFunctions>
-#include <glm/glm.hpp>
+#include <Eigen/Dense>
 
 class ToolsWidget;
 class QRotationSensor;
@@ -63,6 +63,6 @@ private:
     void setupBuffers();
     void setupShaders();
     void setDragMode(DragMode mode, int x=0, int y=0) { dragMode_=mode; prevMouseX_=x; prevMouseY_=y; }
-    glm::dmat3 cameraRotation() const;
-    glm::dvec3 calcViewDir(double screenX, double screenY) const;
+    Eigen::Matrix3d cameraRotation() const;
+    Eigen::Vector3d calcViewDir(double screenX, double screenY) const;
 };

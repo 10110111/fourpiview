@@ -6,8 +6,6 @@
 #include <QMouseEvent>
 #include <QImageReader>
 #include <QRotationSensor>
-#include <Eigen/Dense>
-#include <glm/gtx/transform.hpp>
 
 namespace
 {
@@ -48,7 +46,11 @@ QPoint position(QMouseEvent* event)
 #endif
 }
 
-inline QMatrix3x3 toQMatrix(glm::mat3 const& m) { return QMatrix3x3(&transpose(m)[0][0]); }
+inline QMatrix3x3 toQMatrix(Eigen::Matrix3d const& m)
+{
+    const Eigen::Matrix3f mf = m.cast<float>().transpose();
+    return QMatrix3x3(mf.data());
+}
 
 double normalizedAngle(double angle)
 {
@@ -207,20 +209,22 @@ Canvas::~Canvas()
     makeCurrent();
 }
 
-glm::dmat3 Canvas::cameraRotation() const
+Eigen::Matrix3d Canvas::cameraRotation() const
 {
-    using namespace glm;
-    return rotate(yaw_ + deltaYaw_, glm::dvec3(0,0,1)) *
-           rotate(pitch_ + deltaPitch_, glm::dvec3(0,-1,0)) *
-           rotate(deltaRoll_, glm::dvec3(1,0,0));
+    using namespace Eigen;
+    Matrix3d m;
+    m = AngleAxisd(yaw_ + deltaYaw_, Vector3d::UnitZ()) *
+        AngleAxisd(pitch_ + deltaPitch_, -Vector3d::UnitY()) *
+        AngleAxisd(deltaRoll_, Vector3d::UnitX());
+    return m;
 }
 
-glm::dvec3 Canvas::calcViewDir(const double screenX, const double screenY) const
+Eigen::Vector3d Canvas::calcViewDir(const double screenX, const double screenY) const
 {
     const auto x = screenX / viewportWidth_ * 2 - 1;
     const auto y = 1 - screenY / viewportWidth_ * 2; // width instead of height takes aspect ratio into account
     const float camDistToScreen = 1 / std::tan(horizViewAngle_ / 2);
-    return cameraRotation() * normalize(glm::dvec3(-camDistToScreen, x, y));
+    return cameraRotation() * Eigen::Vector3d(-camDistToScreen, x, y).normalized();
 }
 
 void Canvas::mouseMoveEvent(QMouseEvent*const event)
@@ -232,7 +236,7 @@ void Canvas::mouseMoveEvent(QMouseEvent*const event)
     {
         const auto dir0 = calcViewDir(viewportWidth_ / 2., viewportHeight_ / 2.);
         const auto dir1 = calcViewDir(viewportWidth_ / 2. + 1, viewportHeight_ / 2. + 1);
-        const auto anglePerPixel = std::acos(std::min(1., dot(dir0, dir1)));
+        const auto anglePerPixel = std::acos(std::min(1., dir0.dot(dir1)));
         const auto deltaYaw = -(prevMouseX_-pos.x())*anglePerPixel;
         const auto deltaPitch = (prevMouseY_-pos.y())*anglePerPixel;
         pitch_ = std::clamp(pitch_ + deltaPitch, -M_PI/2, M_PI/2);

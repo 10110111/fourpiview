@@ -20,12 +20,6 @@ if(NOT HAVE_EIGEN)
     include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
 endif()
 
-check_include_file_cxx("glm/glm.hpp" HAVE_GLM)
-if(NOT HAVE_GLM)
-    unset(HAVE_GLM CACHE)
-    message(FATAL_ERROR "GLM was not found")
-endif()
-
 qt6_add_resources(RES_SOURCES resources.qrc)
 
 qt_add_executable(fourpiview
