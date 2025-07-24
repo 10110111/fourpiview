@@ -57,8 +57,10 @@ Canvas::Canvas(QWidget* parent)
 {
     setFormat(makeGLSurfaceFormat());
     setAcceptDrops(true);
-    frameTimer_.start(1000 / 60);
+    const int freq = 1000 / 60;
+    frameTimer_.start(freq);
     connect(&frameTimer_, &QTimer::timeout, this, qOverload<>(&Canvas::update));
+    sensor_->setDataRate(2 * freq);
     if(sensor_->connectToBackend())
     {
         qDebug() << "Sensor connected to backend, starting";
