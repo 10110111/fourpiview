@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10.0)
+cmake_minimum_required(VERSION 3.12.0)
 project(FourPiView VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -14,6 +14,12 @@ set(CMAKE_AUTOUIC ON)
 find_package(Qt6 6.4 REQUIRED Core OpenGL OpenGLWidgets Sensors)
 
 include(CheckIncludeFileCXX)
+check_include_file_cxx("Eigen/Dense" HAVE_EIGEN)
+if(NOT HAVE_EIGEN)
+    find_package(Eigen3 REQUIRED)
+    include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
+endif()
+
 check_include_file_cxx("glm/glm.hpp" HAVE_GLM)
 if(NOT HAVE_GLM)
     unset(HAVE_GLM CACHE)

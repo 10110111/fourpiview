@@ -25,6 +25,7 @@ class Canvas : public QOpenGLWidget, public QOpenGLExtraFunctions
     static constexpr double inline DEGREE = M_PI / 180;
     double horizViewAngle_ = 60 * DEGREE;
     double pitch_ = 0, yaw_ = 0;
+    double deltaPitch_ = 0, deltaYaw_ = 0, deltaRoll_ = 0;
 
     GLuint vao_=0;
     GLuint vbo_=0;

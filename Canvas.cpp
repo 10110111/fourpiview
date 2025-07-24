@@ -6,6 +6,7 @@
 #include <QMouseEvent>
 #include <QImageReader>
 #include <QRotationSensor>
+#include <Eigen/Dense>
 #include <glm/gtx/transform.hpp>
 
 namespace
@@ -48,6 +49,15 @@ QPoint position(QMouseEvent* event)
 }
 
 inline QMatrix3x3 toQMatrix(glm::mat3 const& m) { return QMatrix3x3(&transpose(m)[0][0]); }
+
+double normalizedAngle(double angle)
+{
+    while(angle > M_PI)
+        angle -= M_PI*2;
+    while(angle < -M_PI)
+        angle += M_PI*2;
+    return angle;
+}
 
 }
 
@@ -200,7 +210,9 @@ Canvas::~Canvas()
 glm::dmat3 Canvas::cameraRotation() const
 {
     using namespace glm;
-    return rotate(yaw_, glm::dvec3(0,0,1)) * rotate(pitch_, glm::dvec3(0,-1,0));
+    return rotate(yaw_ + deltaYaw_, glm::dvec3(0,0,1)) *
+           rotate(pitch_ + deltaPitch_, glm::dvec3(0,-1,0)) *
+           rotate(deltaRoll_, glm::dvec3(1,0,0));
 }
 
 glm::dvec3 Canvas::calcViewDir(const double screenX, const double screenY) const
@@ -335,20 +347,29 @@ void Canvas::closeImage()
 
 void Canvas::paintGL()
 {
-    glm::dmat3 sensorRotation = glm::dmat3(1,0,0,0,1,0,0,0,1);
+    using namespace Eigen;
     if(const auto rot = sensor_->reading(); rot && sensor_->hasZ())
     {
-        static const auto X = glm::dvec3(1,0,0);
-        static const auto Y = glm::dvec3(0,1,0);
-        static const auto Z = glm::dvec3(0,0,1);
+        Matrix3d sensorRotation;
         sensorRotation =
             // Compensate for the default 0,0,0 orientation,
             // which represents the phone lying on a table.
-            glm::rotate(M_PI/2, -Y) *
+            AngleAxisd(M_PI/2, -Vector3d::UnitY()) *
             // Apply the sensed rotation
-            glm::rotate(rot->z() * DEGREE, X) *
-            glm::rotate(rot->x() * DEGREE, Y) *
-            glm::rotate(rot->y() * DEGREE, Z);
+            AngleAxisd(rot->z() * DEGREE, Vector3d::UnitX()) *
+            AngleAxisd(rot->x() * DEGREE, Vector3d::UnitY()) *
+            AngleAxisd(rot->y() * DEGREE, Vector3d::UnitZ());
+        const Vector3d rpy = sensorRotation.eulerAngles(2,1,0).reverse();
+        deltaRoll_ = rpy[0];
+        deltaPitch_ = -rpy[1];
+        deltaYaw_ = rpy[2];
+        if(std::abs(deltaPitch_) > M_PI/2)
+        {
+            // Invert the whole set of angles
+            deltaRoll_  = normalizedAngle(deltaRoll_ - M_PI);
+            deltaPitch_ = normalizedAngle(M_PI - deltaPitch_);
+            deltaYaw_   = normalizedAngle(deltaYaw_ - M_PI);
+        }
     }
 
     getViewportSize();
@@ -385,7 +406,7 @@ void Canvas::paintGL()
     program_.setUniformValue("tex", 0);
     program_.setUniformValue("horizViewAngle", float(horizViewAngle_));
     program_.setUniformValue("viewportAspectRatio", float(viewportWidth_) / viewportHeight_);
-    program_.setUniformValue("cameraRotation", toQMatrix(sensorRotation * cameraRotation()));
+    program_.setUniformValue("cameraRotation", toQMatrix(cameraRotation()));
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindTexture(GL_TEXTURE_2D, 0);
 
