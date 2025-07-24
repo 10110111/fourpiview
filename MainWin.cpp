@@ -71,6 +71,7 @@ MainWin::MainWin(const QString& appName, const QString& filePath, QWidget* paren
     , canvas_(new Canvas)
 {
     setWindowTitle(appName_);
+    setWindowIcon(QIcon(":icon.png"));
     setCentralWidget(canvas_);
 
     connect(canvas_, &Canvas::newFileRequested, this, &MainWin::openFile);
