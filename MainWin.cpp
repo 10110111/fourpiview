@@ -10,36 +10,38 @@
 #include <QMessageBox>
 #include <QApplication>
 #include "Canvas.hpp"
+#include "Gallery.hpp"
 
 void MainWin::openFile()
 {
-    if(hintLabel_)
-        hintLabel_->setText("");
+    hintLabel_->hide();
     const QString filter = tr("Images") + " (*.jpg *.png *.tiff)";
     QString defaultDir;
     const auto file = QFileDialog::getOpenFileName(this, tr("Open image file"),
                                                    defaultDir, filter);
     if(file.isEmpty())
     {
-        if(hintLabel_)
-            hintLabel_->setText(tapAnywhereText_);
+        closeFile();
         return;
     }
-    if(hintLabel_)
-        hintLabel_->setText(tr("Loading image..."));
-    update();
-    QTimer::singleShot(10, [this, file]{ canvas_->openFile(file); });
+    doOpenFile(file);
+}
+
+void MainWin::doOpenFile(const QString& path)
+{
+    hintLabel_->setText(tr("Loading image..."));
+    hintLabel_->show();
+    gallery_->hide();
+    canvas_->show();
+    QTimer::singleShot(10, [this, path]{ canvas_->openFile(path); });
 }
 
 void MainWin::closeFile()
 {
     canvas_->closeImage();
     setWindowTitle(appName_);
-    if(hintLabel_)
-    {
-        hintLabel_->setText(tapAnywhereText_);
-        hintLabel_->show();
-    }
+    canvas_->hide();
+    gallery_->show();
 }
 
 void MainWin::closeEvent(QCloseEvent* event)
@@ -77,27 +79,39 @@ void MainWin::showAboutDialog()
 MainWin::MainWin(const QString& appName, const QString& filePath, QWidget* parent)
     : QMainWindow(parent)
     , appName_(appName)
-    , tapAnywhereText_(tr("Tap anywhere to open an image"))
+    , gallery_(new Gallery)
     , canvas_(new Canvas)
 {
     setWindowTitle(appName_);
     setWindowIcon(QIcon(":icon.png"));
-    setCentralWidget(canvas_);
+
+    const auto holder = new QWidget;
+    const auto layout = new QHBoxLayout;
+    holder->setLayout(layout);
+    setCentralWidget(holder);
+
+    layout->setContentsMargins(0,0,0,0);
+    layout->addWidget(gallery_);
+    layout->addWidget(canvas_);
 
     connect(canvas_, &Canvas::newFileRequested, this, &MainWin::openFile);
 
-#ifdef Q_OS_ANDROID
     const auto vbox = new QVBoxLayout(canvas_);
     vbox->addStretch(1);
-    hintLabel_ = new QLabel(tapAnywhereText_);
+    hintLabel_ = new QLabel("");
+    hintLabel_->hide();
     vbox->addWidget(hintLabel_);
     vbox->addStretch(1);
 
     connect(canvas_, &Canvas::newImageLoaded, [this]
             {
                 hintLabel_->hide();
+                gallery_->hide();
             });
-#else
+
+    connect(gallery_, &Gallery::openFileRequest, this, &MainWin::doOpenFile);
+
+#ifndef Q_OS_ANDROID
     const auto menuBar = this->menuBar();
     const auto aboutAction = new QAction(tr("&About"), this);
     connect(aboutAction, &QAction::triggered, this, &MainWin::showAboutDialog);
@@ -128,4 +142,6 @@ MainWin::MainWin(const QString& appName, const QString& filePath, QWidget* paren
 
     if(!filePath.isEmpty())
         QTimer::singleShot(0, [this, filePath]{canvas_->openFile(filePath);});
+    else
+        canvas_->hide();
 }

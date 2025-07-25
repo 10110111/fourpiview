@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="org.zozzozzz.fourpiview" android:installLocation="auto" android:versionCode="1" android:versionName="0.1">
-    <!-- %%INSERT_PERMISSIONS -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <!-- %%INSERT_FEATURES -->
     <supports-screens android:anyDensity="true" android:largeScreens="true" android:normalScreens="true" android:smallScreens="true"/>
     <application android:name="org.qtproject.qt.android.bindings.QtApplication" android:hardwareAccelerated="true" android:label="4π View" android:requestLegacyExternalStorage="true" android:allowBackup="true" android:fullBackupOnly="false" android:theme="@android:style/Theme.Black.NoTitleBar" android:icon="@mipmap/ic_launcher">
