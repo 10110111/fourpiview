@@ -47,6 +47,19 @@ void MainWin::openFile()
     QTimer::singleShot(10, [this, file]{ canvas_->openFile(file); });
 }
 
+void MainWin::closeFile()
+{
+    canvas_->closeImage();
+    setWindowTitle(appName_);
+    if(hintLabel_)
+    {
+        hintLabel_->setText(tapAnywhereText_);
+        hintLabel_->show();
+    }
+    if(closeFileButton_)
+        closeFileButton_->hide();
+}
+
 void MainWin::showAboutDialog()
 {
     const auto defaultFontSize = QFontMetrics(font()).ascent();
@@ -96,15 +109,7 @@ MainWin::MainWin(const QString& appName, const QString& filePath, QWidget* paren
     hbox->addWidget(closeFileButton_);
     hbox->addStretch(1);
 
-    connect(closeFileButton_, &QAbstractButton::clicked, this,
-            [this]
-            {
-                canvas_->closeImage();
-                setWindowTitle(appName_);
-                hintLabel_->setText(tapAnywhereText_);
-                hintLabel_->show();
-                closeFileButton_->hide();
-            });
+    connect(closeFileButton_, &QAbstractButton::clicked, this, &MainWin::closeFile);
     connect(canvas_, &Canvas::newImageLoaded, [this]
             {
                 hintLabel_->hide();
@@ -127,6 +132,11 @@ MainWin::MainWin(const QString& appName, const QString& filePath, QWidget* paren
     openAction->setShortcut(QKeySequence::fromString("Ctrl+O"));
     connect(openAction, &QAction::triggered, this, &MainWin::openFile);
     fileMenu->addAction(openAction);
+
+    const auto closeAction = new QAction(tr("&Close"), this);
+    closeAction->setShortcut(QKeySequence::fromString("Ctrl+W"));
+    connect(closeAction, &QAction::triggered, this, &MainWin::closeFile);
+    fileMenu->addAction(closeAction);
 
     const auto quitAction = new QAction(tr("&Quit"), this);
     quitAction->setShortcut(QKeySequence::fromString("Ctrl+Q"));

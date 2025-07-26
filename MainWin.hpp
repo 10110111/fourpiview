@@ -12,6 +12,7 @@ public:
 private:
     void showAboutDialog();
     void openFile();
+    void closeFile();
 
     const QString appName_;
     const QString tapAnywhereText_;
