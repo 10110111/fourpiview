@@ -310,19 +310,7 @@ void Canvas::dropEvent(QDropEvent*const event)
 
 void Canvas::setImage(const QImage& image)
 {
-    if(image.width() < maxTexSize_ && image.height() < maxTexSize_)
-    {
-        image_ = image;
-    }
-    else
-    {
-        qWarning() << "Image resolution of" << image.width() << "×" << image.height()
-                   << "exceeds GL_MAX_TEXTURE_SIZE =" << maxTexSize_;
-        image_ = image.scaled(std::min(image.width(), maxTexSize_),
-                              std::min(image.height(), maxTexSize_),
-                              Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-        qDebug() << "Image resized to" << image_.width() << "×" << image_.height();
-    }
+    image_ = image;
     update();
 }
 
@@ -389,6 +377,15 @@ void Canvas::paintGL()
 
     if(!image_.isNull())
     {
+        if(image_.width() > maxTexSize_ || image_.height() > maxTexSize_)
+        {
+            qWarning() << "Image resolution of" << image_.width() << "×" << image_.height()
+                << "exceeds GL_MAX_TEXTURE_SIZE =" << maxTexSize_;
+            image_ = image_.scaled(std::min(image_.width(), maxTexSize_),
+                                   std::min(image_.height(), maxTexSize_),
+                                  Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+            qDebug() << "Image resized to" << image_.width() << "×" << image_.height();
+        }
         // We have a new image, upload it to the GL
         texture_.reset(new QOpenGLTexture(image_));
         texture_->bind();
