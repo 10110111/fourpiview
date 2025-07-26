@@ -41,7 +41,12 @@ void MainWin::openFile()
     QString defaultDir;
     const auto file = QFileDialog::getOpenFileName(this, tr("Open image file"),
                                                    defaultDir, filter);
-    if(file.isEmpty()) return;
+    if(file.isEmpty())
+    {
+        if(hintLabel_)
+            hintLabel_->setText(tapAnywhereText_);
+        return;
+    }
     if(hintLabel_)
         hintLabel_->setText(tr("Loading image..."));
     update();
