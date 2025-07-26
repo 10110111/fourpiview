@@ -29,6 +29,7 @@ qt6_add_resources(RES_SOURCES resources.qrc)
 
 qt_add_executable(fourpiview
                     main.cpp
+                    Utils.cpp
                     Canvas.cpp
                     Gallery.cpp
                     MainWin.cpp

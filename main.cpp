@@ -2,6 +2,7 @@
 #include <iostream>
 #include <QScreen>
 #include <QApplication>
+#include "Utils.hpp"
 #include "MainWin.hpp"
 
 namespace
@@ -37,6 +38,26 @@ int main(int argc, char** argv)
     else if(args.size() != 1)
         std::cerr << "Bad number of arguments, ignoring all\n";
 
+#ifdef Q_OS_ANDROID
+    if(Utils::isDarkMode())
+    {
+        uiCSS += R"(
+QListView, QMainWindow
+{
+    background: black;
+}
+)";
+    }
+    else
+    {
+        uiCSS += R"(
+QListView, QMainWindow
+{
+    background: white;
+}
+)";
+    }
+#endif
     app.setStyleSheet(uiCSS);
     MainWin mainWin(u8"4π View", filePath);
 
