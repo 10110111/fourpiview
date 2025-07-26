@@ -44,6 +44,7 @@ public:
     bool openFile(const QString& path);
     int maxTexSize() const { return maxTexSize_; }
     void closeImage();
+    bool fileOpened() const { return texture_ || !image_.isNull(); }
 
 signals:
     void newImageLoaded(const QString& fileName);

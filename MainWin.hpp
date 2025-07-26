@@ -9,6 +9,9 @@ class MainWin : public QMainWindow
 {
 public:
     MainWin(const QString& appName, const QString& filePath, QWidget* parent = nullptr);
+protected:
+
+    void closeEvent(QCloseEvent* event) override;
 private:
     void showAboutDialog();
     void openFile();

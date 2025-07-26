@@ -3,6 +3,7 @@
 #include <QTimer>
 #include <QAction>
 #include <QMenuBar>
+#include <QCloseEvent>
 #include <QGridLayout>
 #include <QToolButton>
 #include <QFileDialog>
@@ -58,6 +59,19 @@ void MainWin::closeFile()
     }
     if(closeFileButton_)
         closeFileButton_->hide();
+}
+
+void MainWin::closeEvent(QCloseEvent* event)
+{
+#ifdef Q_OS_ANDROID
+    if(canvas_->fileOpened())
+    {
+        closeFile();
+        event->setAccepted(false);
+    }
+#else
+    Q_UNUSED(event);
+#endif
 }
 
 void MainWin::showAboutDialog()
