@@ -8,9 +8,9 @@ namespace
 {
 
 #ifdef Q_OS_ANDROID
-constexpr int BASE_ICON_SIZE = 32;
+constexpr int BASE_ICON_SIZE = 48;
 #else
-constexpr int BASE_ICON_SIZE = 128;
+constexpr int BASE_ICON_SIZE = 192;
 #endif
 
 enum
@@ -18,30 +18,21 @@ enum
     FilePathRole = Qt::UserRole,
 };
 
-const char thumbnailButtonCSS[] = R"(
-QToolButton {
-    border: 0px;
-    background: rgba(0,0,0,0);
-    padding: 0px, 0px, 0px, 0px;
-}
-)";
 }
 
 Gallery::Gallery(QWidget* parent)
-    : QScrollArea(parent)
+    : QListWidget(parent)
     , thumbnailWidth_(BASE_ICON_SIZE * devicePixelRatio())
     , imageFinder_(new ImageFinder(thumbnailWidth_, this))
-    , thumbnailHolder_(new QWidget)
     , layout_(new QGridLayout)
 {
-    setWidget(thumbnailHolder_);
-    setWidgetResizable(true);
-
-    const auto vbox = new QVBoxLayout(thumbnailHolder_);
-    vbox->addLayout(layout_);
-    vbox->addStretch(10);
-
-    QScroller::grabGesture(viewport(), QScroller::LeftMouseButtonGesture);
+    QScroller::grabGesture(this, QScroller::LeftMouseButtonGesture);
+    setViewMode(QListView::IconMode);
+    setMovement(QListView::Static);
+    setIconSize(QSize(thumbnailWidth_, thumbnailWidth_ / 2));
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    connect(this, &QListWidget::itemClicked, this, &Gallery::handleItemClick);
 
     QImage empty(1, 1, QImage::Format_RGBA8888);
     for(int n = 0; n < 3; ++n)
@@ -57,55 +48,42 @@ Gallery::Gallery(QWidget* parent)
 
 void Gallery::addImage(const QString& path)
 {
-    const auto button = new QToolButton;
-    button->setStyleSheet(thumbnailButtonCSS);
-    button->setIcon(emptyIcon_);
-    button->setFixedSize(thumbnailWidth_, thumbnailWidth_ / 2);
-    button->setIconSize(QSize(thumbnailWidth_, thumbnailWidth_ / 2));
-    connect(button, &QToolButton::clicked, this, [this, path]{ handleItemClick(path); });
-    pathMap_[path] = button;
-    buttonMap_[button] = path;
-    QTimer::singleShot(200, [this]{updateLayout();});
+    const auto item = new QListWidgetItem(this);
+    item->setIcon(emptyIcon_);
+    item->setData(FilePathRole, path);
+    pathMap_[path] = item;
+    itemMap_[item] = path;
+    if(pathMap_.size() == 1)
+        updateLayout();
 }
 
 void Gallery::updateThumbnail(const QString& path, const QImage& thumbnail)
 {
-    const auto buttonIt = pathMap_.find(path);
-    if(buttonIt == pathMap_.end()) return;
-    const auto button = buttonIt->second;
-    button->setIcon(QIcon(QPixmap::fromImage(thumbnail)));
+    const auto itemIt = pathMap_.find(path);
+    if(itemIt == pathMap_.end()) return;
+    const auto item = itemIt->second;
+    item->setIcon(QIcon(QPixmap::fromImage(thumbnail)));
 }
 
-void Gallery::handleItemClick(const QString& path)
+void Gallery::handleItemClick(const QListWidgetItem* item)
 {
-    emit openFileRequest(path);
-}
-
-void Gallery::updateLayout()
-{
-    thumbnails_.clear();
-    for(const auto& th : buttonMap_)
-        thumbnails_.push_back({th.second, th.first});
-    std::sort(thumbnails_.begin(), thumbnails_.end(),
-              [](const auto& a, const auto& b) { return a.path > b.path; });
-    const int numCols = std::max(1, int(width() / (thumbnailWidth_ * 1.1)));
-    layout_->setColumnStretch(numCols, 10);
-    int itemNum = 0;
-    for(const auto& th : thumbnails_)
-    {
-        const int row = itemNum / numCols;
-        const int col = itemNum % numCols;
-        if(const auto item = layout_->itemAtPosition(row, col))
-            layout_->removeItem(item);
-        layout_->removeWidget(th.button);
-        layout_->addWidget(th.button, row, col);
-        ++itemNum;
-    }
+    emit openFileRequest(item->data(FilePathRole).toString());
 }
 
 void Gallery::resizeEvent(QResizeEvent*)
 {
     updateLayout();
+}
+
+void Gallery::updateLayout()
+{
+    const int numCols = std::round(double(width()) / (BASE_ICON_SIZE * devicePixelRatio() / 1.5));
+    const int spacing = 4;
+    const int iconHeight = ((width() - spacing) / numCols - spacing) / 2;
+    const QSize iconSize(iconHeight * 2, iconHeight);
+    setIconSize(QSize(1,1)); // force re-layout
+    setGridSize(iconSize + QSize(spacing, spacing));
+    setIconSize(iconSize);
 }
 
 Gallery::~Gallery()

@@ -1,12 +1,11 @@
 #pragma once
 
 #include <vector>
-#include <QToolButton>
-#include <QScrollArea>
+#include <QListWidget>
 
 class QGridLayout;
 class ImageFinder;
-class Gallery : public QScrollArea
+class Gallery : public QListWidget
 {
     Q_OBJECT
 
@@ -20,7 +19,7 @@ protected:
 private:
     void addImage(const QString& path);
     void updateThumbnail(const QString& path, const QImage& thumbnail);
-    void handleItemClick(const QString& path);
+    void handleItemClick(const QListWidgetItem* item);
     void updateLayout();
 
 signals:
@@ -29,15 +28,14 @@ signals:
 private:
     int thumbnailWidth_;
     ImageFinder* imageFinder_ = nullptr;
-    QWidget* thumbnailHolder_ = nullptr;
     QGridLayout* layout_ = nullptr;
     struct Thumbnail
     {
         QString path;
-        QToolButton* button;
+        QListWidgetItem* item;
     };
     std::vector<Thumbnail> thumbnails_;
-    std::unordered_map<QString/*path*/, QToolButton*> pathMap_;
-    std::unordered_map<QToolButton*, QString/*path*/> buttonMap_;
+    std::unordered_map<QString/*path*/, QListWidgetItem*> pathMap_;
+    std::unordered_map<QListWidgetItem*, QString/*path*/> itemMap_;
     QIcon emptyIcon_;
 };
