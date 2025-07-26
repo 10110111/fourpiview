@@ -51,6 +51,7 @@ void Gallery::addImage(const QString& path)
     const auto item = new QListWidgetItem(this);
     item->setIcon(emptyIcon_);
     item->setData(FilePathRole, path);
+    item->setFlags(item->flags() & ~Qt::ItemIsSelectable);
     pathMap_[path] = item;
     itemMap_[item] = path;
     if(pathMap_.size() == 1)
