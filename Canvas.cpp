@@ -339,7 +339,12 @@ void Canvas::closeImage()
 
 void Canvas::paintGL()
 {
+    if(!isVisible())
+        return;
     getViewportSize();
+    if(viewportWidth_==0 || viewportHeight_==0)
+        return;
+
 #ifdef Q_OS_ANDROID
     glClearColor(0.0,0.0,0.0,1);
 #else
@@ -347,7 +352,7 @@ void Canvas::paintGL()
 #endif
     glClear(GL_COLOR_BUFFER_BIT);
 
-    if(!isVisible() || viewportWidth_==0 || viewportHeight_==0 || (!texture_ && image_.isNull()))
+    if(!texture_ && image_.isNull())
         return;
 
     if(!image_.isNull())
