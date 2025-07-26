@@ -21,5 +21,4 @@ private:
     const QString tapAnywhereText_;
     Canvas* canvas_ = nullptr;
     QLabel* hintLabel_ = nullptr;
-    QToolButton* closeFileButton_ = nullptr;
 };

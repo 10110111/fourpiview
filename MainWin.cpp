@@ -57,8 +57,6 @@ void MainWin::closeFile()
         hintLabel_->setText(tapAnywhereText_);
         hintLabel_->show();
     }
-    if(closeFileButton_)
-        closeFileButton_->hide();
 }
 
 void MainWin::closeEvent(QCloseEvent* event)
@@ -106,28 +104,16 @@ MainWin::MainWin(const QString& appName, const QString& filePath, QWidget* paren
     connect(canvas_, &Canvas::newFileRequested, this, &MainWin::openFile);
 
 #ifdef Q_OS_ANDROID
-    closeFileButton_ = new QToolButton;
-    closeFileButton_->setStyleSheet(uiCSS);
-    closeFileButton_->setIcon(QIcon(":cross.svg"));
-    closeFileButton_->setFixedSize(48,48);
-    closeFileButton_->setIconSize(QSize(16,16));
-    closeFileButton_->hide();
     const auto vbox = new QVBoxLayout(canvas_);
-    const auto hbox = new QHBoxLayout;
-    vbox->addLayout(hbox);
     vbox->addStretch(1);
     hintLabel_ = new QLabel(tapAnywhereText_);
     hintLabel_->setStyleSheet(uiCSS);
     vbox->addWidget(hintLabel_);
     vbox->addStretch(1);
-    hbox->addWidget(closeFileButton_);
-    hbox->addStretch(1);
 
-    connect(closeFileButton_, &QAbstractButton::clicked, this, &MainWin::closeFile);
     connect(canvas_, &Canvas::newImageLoaded, [this]
             {
                 hintLabel_->hide();
-                closeFileButton_->show();
             });
 #else
     const auto menuBar = this->menuBar();
