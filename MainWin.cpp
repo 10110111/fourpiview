@@ -34,13 +34,15 @@ QLabel {
 
 void MainWin::openFile()
 {
-    hintLabel_->setText("");
+    if(hintLabel_)
+        hintLabel_->setText("");
     const QString filter = tr("Images") + " (*.jpg *.png *.tiff)";
     QString defaultDir;
     const auto file = QFileDialog::getOpenFileName(this, tr("Open image file"),
                                                    defaultDir, filter);
     if(file.isEmpty()) return;
-    hintLabel_->setText(tr("Loading image..."));
+    if(hintLabel_)
+        hintLabel_->setText(tr("Loading image..."));
     update();
     QTimer::singleShot(10, [this, file]{ canvas_->openFile(file); });
 }
