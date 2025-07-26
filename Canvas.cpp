@@ -339,31 +339,6 @@ void Canvas::closeImage()
 
 void Canvas::paintGL()
 {
-    using namespace Eigen;
-    if(const auto rot = sensor_->reading(); rot && sensor_->hasZ())
-    {
-        Matrix3d sensorRotation;
-        sensorRotation =
-            // Compensate for the default 0,0,0 orientation,
-            // which represents the phone lying on a table.
-            AngleAxisd(M_PI/2, -Vector3d::UnitY()) *
-            // Apply the sensed rotation
-            AngleAxisd(rot->z() * DEGREE, Vector3d::UnitX()) *
-            AngleAxisd(rot->x() * DEGREE, Vector3d::UnitY()) *
-            AngleAxisd(rot->y() * DEGREE, Vector3d::UnitZ());
-        const Vector3d rpy = sensorRotation.eulerAngles(2,1,0).reverse();
-        deltaRoll_ = rpy[0];
-        deltaPitch_ = -rpy[1];
-        deltaYaw_ = rpy[2];
-        if(std::abs(deltaPitch_) > M_PI/2)
-        {
-            // Invert the whole set of angles
-            deltaRoll_  = normalizedAngle(deltaRoll_ - M_PI);
-            deltaPitch_ = normalizedAngle(M_PI - deltaPitch_);
-            deltaYaw_   = normalizedAngle(deltaYaw_ - M_PI);
-        }
-    }
-
     getViewportSize();
 #ifdef Q_OS_ANDROID
     glClearColor(0.0,0.0,0.0,1);
@@ -398,6 +373,31 @@ void Canvas::paintGL()
         if(anisotropy > 0)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
         image_ = {};
+    }
+
+    if(const auto rot = sensor_->reading(); rot && sensor_->hasZ())
+    {
+        using namespace Eigen;
+        Matrix3d sensorRotation;
+        sensorRotation =
+            // Compensate for the default 0,0,0 orientation,
+            // which represents the phone lying on a table.
+            AngleAxisd(M_PI/2, -Vector3d::UnitY()) *
+            // Apply the sensed rotation
+            AngleAxisd(rot->z() * DEGREE, Vector3d::UnitX()) *
+            AngleAxisd(rot->x() * DEGREE, Vector3d::UnitY()) *
+            AngleAxisd(rot->y() * DEGREE, Vector3d::UnitZ());
+        const Vector3d rpy = sensorRotation.eulerAngles(2,1,0).reverse();
+        deltaRoll_ = rpy[0];
+        deltaPitch_ = -rpy[1];
+        deltaYaw_ = rpy[2];
+        if(std::abs(deltaPitch_) > M_PI/2)
+        {
+            // Invert the whole set of angles
+            deltaRoll_  = normalizedAngle(deltaRoll_ - M_PI);
+            deltaPitch_ = normalizedAngle(M_PI - deltaPitch_);
+            deltaYaw_   = normalizedAngle(deltaYaw_ - M_PI);
+        }
     }
 
     glBindVertexArray(vao_);
