@@ -79,7 +79,7 @@ void Gallery::resizeEvent(QResizeEvent*)
 void Gallery::updateLayout()
 {
     const int numCols = std::round(double(width()) / (BASE_ICON_SIZE * devicePixelRatio() / 1.5));
-    const int spacing = 4;
+    const int spacing = 2;
     const int iconHeight = ((width() - spacing) / numCols - spacing) / 2;
     const QSize iconSize(iconHeight * 2, iconHeight);
     setIconSize(QSize(1,1)); // force re-layout
