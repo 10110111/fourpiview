@@ -1,6 +1,8 @@
 #pragma once
 
+#include <map>
 #include <vector>
+#include <QDate>
 #include <QListWidget>
 
 struct ImageInfo;
@@ -40,4 +42,5 @@ private:
     std::unordered_map<QString/*path*/, QListWidgetItem*> pathMap_;
     std::unordered_map<QListWidgetItem*, QString/*path*/> itemMap_;
     QIcon emptyIcon_;
+    std::map<QDate, QListWidgetItem*> datesDesignated_;
 };
