@@ -23,4 +23,5 @@ private:
     Gallery* gallery_ = nullptr;
     Canvas* canvas_ = nullptr;
     QLabel* hintLabel_ = nullptr;
+    QToolButton* openFileButton_ = nullptr;
 };

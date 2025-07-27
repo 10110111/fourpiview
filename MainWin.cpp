@@ -32,6 +32,8 @@ void MainWin::doOpenFile(const QString& path)
     hintLabel_->setText(tr("Loading image..."));
     hintLabel_->show();
     gallery_->hide();
+    if(openFileButton_)
+        openFileButton_->hide();
     canvas_->show();
     QTimer::singleShot(10, [this, path]{ canvas_->openFile(path); });
 }
@@ -42,6 +44,8 @@ void MainWin::closeFile()
     setWindowTitle(appName_);
     canvas_->hide();
     gallery_->show();
+    if(openFileButton_)
+        openFileButton_->show();
 }
 
 void MainWin::closeEvent(QCloseEvent* event)
@@ -86,11 +90,23 @@ MainWin::MainWin(const QString& appName, const QString& filePath, QWidget* paren
     setWindowIcon(QIcon(":icon.png"));
 
     const auto holder = new QWidget;
-    const auto layout = new QHBoxLayout;
+    const auto layout = new QVBoxLayout;
     holder->setLayout(layout);
     setCentralWidget(holder);
 
     layout->setContentsMargins(0,0,0,0);
+    layout->setSpacing(0);
+#ifdef Q_OS_ANDROID
+    const auto toolbarHBox = new QHBoxLayout;
+    openFileButton_ = new QToolButton;
+    openFileButton_->setIcon(QIcon(":open-image.svg"));
+    openFileButton_->setFixedSize(48,48);
+    openFileButton_->setIconSize(QSize(32,32));
+    connect(openFileButton_, &QToolButton::clicked, this, &MainWin::openFile);
+    toolbarHBox->addStretch(10);
+    toolbarHBox->addWidget(openFileButton_);
+    layout->addLayout(toolbarHBox);
+#endif
     layout->addWidget(gallery_);
     layout->addWidget(canvas_);
 
@@ -107,6 +123,8 @@ MainWin::MainWin(const QString& appName, const QString& filePath, QWidget* paren
             {
                 hintLabel_->hide();
                 gallery_->hide();
+                if(openFileButton_)
+                    openFileButton_->hide();
             });
 
     connect(gallery_, &Gallery::openFileRequest, this, &MainWin::doOpenFile);
