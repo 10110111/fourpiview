@@ -11,28 +11,6 @@
 #include <QApplication>
 #include "Canvas.hpp"
 
-namespace
-{
-const char uiCSS[] = R"(
-QToolButton {
-    border: 1px solid rgba(0, 0, 0, 0);
-    border-radius: 24px;
-    background: rgba(0,0,0,0);
-    padding: 0px, 0px, 0px, 0px;
-}
-QToolButton:hover {
-    background: rgba(0,0,0,64);
-}
-QToolButton:pressed {
-    background: rgba(0,0,0,128);
-}
-QLabel {
-    color: white;
-    qproperty-alignment: AlignCenter;
-}
-)";
-}
-
 void MainWin::openFile()
 {
     if(hintLabel_)
@@ -112,7 +90,6 @@ MainWin::MainWin(const QString& appName, const QString& filePath, QWidget* paren
     const auto vbox = new QVBoxLayout(canvas_);
     vbox->addStretch(1);
     hintLabel_ = new QLabel(tapAnywhereText_);
-    hintLabel_->setStyleSheet(uiCSS);
     vbox->addWidget(hintLabel_);
     vbox->addStretch(1);
 
