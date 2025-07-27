@@ -3,6 +3,7 @@
 #include <vector>
 #include <QListWidget>
 
+struct ImageInfo;
 class QGridLayout;
 class ImageFinder;
 class Gallery : public QListWidget
@@ -17,9 +18,10 @@ protected:
     void resizeEvent(QResizeEvent* event) override;
 
 private:
-    void addImage(const QString& path);
+    void addImage(const ImageInfo& info);
     void updateThumbnail(const QString& path, const QImage& thumbnail);
     void handleItemClick(const QListWidgetItem* item);
+    int findRowForItem(const QListWidgetItem*const item) const;
     void updateLayout();
 
 signals:

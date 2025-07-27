@@ -2,7 +2,14 @@
 
 #include <atomic>
 #include <QThread>
+#include <QDateTime>
 #include <QStringList>
+
+struct ImageInfo
+{
+    QString path;
+    QDateTime dateTime;
+};
 
 class ImageFinder : public QThread
 {
@@ -20,11 +27,11 @@ private:
     void loadThumbnails();
 
 signals:
-    void imageFound(QString path);
+    void imageFound(ImageInfo info);
     void thumbnailReady(QString path, QImage thumbnail);
 
 private:
-    QStringList imagePaths;
+    std::vector<ImageInfo> imageInfos_;
     int thumbnailWidth_;
     std::atomic_bool mustStop_{false};
 };

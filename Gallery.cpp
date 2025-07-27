@@ -16,7 +16,14 @@ constexpr int BASE_ICON_SIZE = 192;
 enum
 {
     FilePathRole = Qt::UserRole,
+    ImageDateTimeRole,
 };
+
+QDateTime dateTime(const QListWidgetItem*const item)
+{
+    assert(item);
+    return item->data(ImageDateTimeRole).toDateTime();
+}
 
 }
 
@@ -46,14 +53,43 @@ Gallery::Gallery(QWidget* parent)
     imageFinder_->start();
 }
 
-void Gallery::addImage(const QString& path)
+// This function tries to make sure that the items are sorted by datetime in descending order.
+int Gallery::findRowForItem(const QListWidgetItem*const newItem) const
 {
-    const auto item = new QListWidgetItem(this);
+    const int total = count();
+    const auto newDateTime = dateTime(newItem);
+    if(total == 0) return 0;
+    if(total == 1) return dateTime(item(0)) < newDateTime ? 0 : 1;
+    if(dateTime(item(0)) <= newDateTime) return 0;
+    if(dateTime(item(total - 1)) >= newDateTime) return total;
+
+    // Using binary search to find the right position according to datetime.
+    // Assuming that all existing items are already in the right order.
+    int left = 0, right = total - 1;
+    while(right - left > 1)
+    {
+        const int mid = (right + left) / 2;
+        if(dateTime(item(mid)) < newDateTime)
+            right = mid;
+        else
+            left = mid;
+    }
+
+    if(dateTime(item(left)) > newDateTime) return right;
+    return left;
+}
+
+void Gallery::addImage(const ImageInfo& info)
+{
+    const auto item = new QListWidgetItem;
     item->setIcon(emptyIcon_);
-    item->setData(FilePathRole, path);
+    item->setData(FilePathRole, info.path);
+    item->setData(ImageDateTimeRole, info.dateTime);
     item->setFlags(item->flags() & ~Qt::ItemIsSelectable);
-    pathMap_[path] = item;
-    itemMap_[item] = path;
+    const int row = findRowForItem(item);
+    insertItem(row, item);
+    pathMap_[info.path] = item;
+    itemMap_[item] = info.path;
     if(pathMap_.size() == 1)
         updateLayout();
 }
